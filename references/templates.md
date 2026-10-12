@@ -13,12 +13,12 @@ Full template library for Prompt Master. Read the relevant template when the use
 | [E — Auditable Reasoning](#template-e--auditable-reasoning) | Logic, math, analysis, debugging |
 | [F — Few-Shot](#template-f--few-shot) | Consistent structured output, pattern replication |
 | [G — File-Scope](#template-g--file-scope) | Cursor, Windsurf, Copilot — code editing AI |
-| [H — ReAct + Stop Conditions](#template-h--react--stop-conditions) | Claude Code, Devin — autonomous agents |
+| [H — Agent Task + Boundaries](#template-h--agent-task--boundaries) | Coding and autonomous agents |
 | [I — Visual Descriptor](#template-i--visual-descriptor) | Midjourney, DALL-E, Stable Diffusion, Sora |
 | [J — Reference Image Editing](#template-j--reference-image-editing) | Editing an existing image with a reference |
 | [K — ComfyUI](#template-k--comfyui) | ComfyUI node-based image workflows |
 | [L — Prompt Decompiler](#template-l--prompt-decompiler) | Breaking down, adapting, or splitting existing prompts |
-| [M — Current Claude Task Brief](#template-m--current-claude-task-brief) | Complex, multi-step, or agentic task on current Claude models |
+| [M — Portable Agent Task Brief](#template-m--portable-agent-task-brief) | Complex, multi-step work for coding or autonomous agents |
 
 ---
 
@@ -152,7 +152,7 @@ Do not reveal hidden chain-of-thought or private reasoning. Keep the rationale c
 
 ## Template F — Few-Shot
 
-*Use when the output format is easier to show than describe. Examples outperform written instructions for format-sensitive tasks every time.*
+*Use when examples clarify a format or style better than more prose.*
 
 ```
 [Task instruction]
@@ -174,9 +174,9 @@ Now apply this exact pattern to: [actual input]
 ```
 
 **Rules:**
-- 2 to 5 examples is the sweet spot. More rarely helps and wastes tokens.
+- Use a small number of relevant examples, including an edge case when useful.
 - Examples must include edge cases, not just easy cases.
-- Use XML tags to wrap examples — Claude parses XML reliably.
+- Use clear delimiters around examples. Use XML only when it suits the target prompt.
 - If you have been re-prompting for the same formatting correction twice, switch to few-shot instead of rewriting instructions.
 
 ---
@@ -210,9 +210,9 @@ Done When:
 
 ---
 
-## Template H — ReAct + Stop Conditions
+## Template H — Agent Task + Boundaries
 
-*Use for Claude Code, Devin, AutoGPT, and any AI that takes autonomous actions. Runaway loops and scope explosion are the biggest credit killers in agentic workflows — stop conditions are not optional.*
+*Use for coding or autonomous agents that can inspect or change a project. Include only the boundaries and checkpoints that matter to the user's task and the target's controls.*
 
 ```
 Objective:
@@ -225,27 +225,16 @@ Target State:
 [What should exist when the agent is done]
 
 Allowed Actions:
-- [Specific action the agent may take]
-- Install only packages listed in [requirements.txt / package.json]
+- [Actions needed for the requested task]
 
-Forbidden Actions:
-- Do NOT modify files outside [directory/scope]
-- Do NOT run the dev server or deploy
-- Do NOT push to git
-- Do NOT delete files without showing a diff first
-- Do NOT make architecture decisions without human approval
+Out of Scope:
+- [Files, systems, or actions that must remain untouched]
 
-Stop Conditions:
-Pause and ask for human review when:
-- A file would be permanently deleted
-- A new external service or API needs to be integrated
-- Two valid implementation paths exist and the choice affects architecture
-- An error cannot be resolved in 2 attempts
-- The task requires changes outside the stated scope
+Approval Boundaries:
+Pause before [specific destructive, external, or consequential action that needs user approval].
 
 Checkpoints:
-After each major step, output: ✅ [what was completed]
-At the end, output a full summary of every file changed.
+Report progress at [useful checkpoint, if needed]. At the end, summarize changes and checks actually performed.
 ```
 
 ---
@@ -255,38 +244,29 @@ At the end, output a full summary of every file changed.
 *Use for Midjourney, DALL-E 3, Stable Diffusion, Sora, Runway, and any image or video generation tool.*
 
 ```
-Subject: [Main subject — specific, not vague]
-Action/Pose: [What the subject is doing]
-Setting: [Where the scene takes place]
-Style: [photorealistic / cinematic / anime / oil painting / vector / etc.]
-Mood: [dramatic / serene / eerie / joyful / etc.]
-Lighting: [golden hour / studio / neon / overcast / candlelight / etc.]
-Color Palette: [dominant colors or named palette]
-Composition: [wide shot / close-up / aerial / Dutch angle / etc.]
-Aspect Ratio: [16:9 / 1:1 / 9:16 / 4:3]
-Negative Prompts: [blurry, watermark, extra fingers, distortion, low quality]
-Style Reference: [artist / film / aesthetic reference if applicable]
+Subject: [Main subject]
+Action/Pose: [What the subject is doing, if relevant]
+Setting: [Where the scene takes place, if relevant]
+Style and mood: [Visual direction]
+Lighting and color: [Only if they affect the result]
+Composition: [Framing, viewpoint, or layout]
+Aspect ratio: [If supported and known]
+Avoid: [Unwanted elements, if the target supports negative instructions]
+Reference: [Attached image or style reference, if applicable]
 ```
 
-**Tool-specific syntax:**
-- **Midjourney**: Comma-separated descriptors, not prose. Add `--ar`, `--style`, `--v 6` at the end.
-- **Stable Diffusion**: Use `(word:1.3)` weight syntax. CFG scale 7 to 12. Negative prompt is mandatory.
-- **DALL-E 3**: Prose works well. Add "do not include any text in the image" unless text is needed.
-- **Sora / video**: Add camera movement (slow dolly, static shot, crane up), duration in seconds, and cut style.
+Use prose, weighted tokens, negative prompts, or parameter flags only when supported by the selected tool and generation mode. Verify exact syntax and settings before including them.
 
 ---
 
 ## Template J — Reference Image Editing
 
-*Use when the user has an existing image they want to modify. Completely different from generation — never describe the whole scene from scratch, only describe the change.*
+*Use when the user has an existing image they want to modify. Focus on the requested change and what should remain stable.*
 
-**Before writing the prompt, always tell the user:**
+**When the target needs an uploaded reference, remind the user:**
 "Attach your reference image to [tool name] before sending this prompt."
 
-**Detect the tool's editing capability:**
-- Midjourney: use `--cref [image URL]` for character reference or `--sref` for style reference
-- DALL-E 3: use the Edit endpoint, not the Generate endpoint. User must be in ChatGPT with image editing enabled
-- Stable Diffusion: use img2img mode, not txt2img. Set denoising strength 0.3-0.6 to preserve the original
+Check that the selected surface supports image editing and the provided reference type. Do not assume an endpoint, mode, flag, or strength value; verify exact controls when they matter.
 
 ```
 Reference image: [attached / URL]
@@ -311,28 +291,19 @@ Negative prompt: no new elements, no style changes, no background changes
 
 ## Template K — ComfyUI
 
-*Use for ComfyUI node-based workflows. Always output Positive and Negative prompts as separate blocks. Ask for the checkpoint model before writing — syntax and token limits differ per model.*
+*Use for ComfyUI workflows. Match the output to the user's graph and loaded model.*
 
-**Ask first if not stated:**
-"Which checkpoint model are you using? (SD 1.5, SDXL, Flux, or other)"
-
-**Model-specific notes:**
-- SD 1.5: shorter prompts work better, under 75 tokens per block, use (word:weight) syntax
-- SDXL: handles longer prompts, supports more natural language alongside weighted syntax
-- Flux: natural language works well, less reliance on weighted syntax, very responsive to style descriptions
+Ask which checkpoint or workflow is in use only if it changes prompt syntax or settings. Keep positive and negative prompts separate only when the graph expects separate inputs.
 
 ```
 POSITIVE PROMPT:
-[subject], [style], [mood], [lighting], [composition], [quality boosters: highly detailed, sharp focus, 8k]
+[subject, style, mood, lighting, composition, and other relevant details]
 
 NEGATIVE PROMPT:
-[what to exclude: blurry, low quality, watermark, extra limbs, bad anatomy, distorted, oversaturated]
+[what to exclude, only if the workflow uses a negative prompt]
 
-CHECKPOINT: [model name]
-SAMPLER: Euler a (recommended starting point)
-CFG SCALE: 7 (increase for stricter prompt adherence)
-STEPS: 20-30
-RESOLUTION: [width x height — must be divisible by 64]
+CHECKPOINT / WORKFLOW: [if relevant]
+SETTINGS: [only verified values requested by the user]
 ```
 
 ---
@@ -347,7 +318,7 @@ RESOLUTION: [width x height — must be divisible by 64]
 - **Simplify** — remove redundancy and tighten without losing meaning
 - **Split** — divide a complex one-shot prompt into a cleaner sequence
 
-**For Adapt tasks, always ask:**
+**For Adapt tasks, identify or ask for:**
 "What tool is the original prompt from, and what tool are you adapting it for?"
 
 **Break down output format:**
@@ -392,9 +363,9 @@ Run these in order. Each output feeds the next.
 ```
 ---
 
-## Template M — Current Claude Task Brief
+## Template M — Portable Agent Task Brief
 
-*Use for complex, multi-step, or agentic tasks on current Claude models—Claude.ai, API, or Claude Code. It front-loads the outcome, context, scope, and action boundaries while avoiding obsolete manual-thinking scaffolding.*
+*Use for complex, multi-step, or agentic work in a coding or autonomous agent. Adapt sections to the target's actual interface and capabilities; omit fields that do not affect the task.*
 
 ```
 ## Objective
@@ -403,7 +374,7 @@ Run these in order. Each output feeds the next.
 ## Context
 [What exists now — relevant files, current behavior, stack already in place, what was tried and failed]
 
-## Target State
+## Expected Result
 [What done looks like — specific files changed, behavior produced, tests passing. Binary where possible.]
 
 ## Scope
@@ -411,32 +382,30 @@ Run these in order. Each output feeds the next.
 - Do NOT touch: [forbidden files — .env, package-lock.json, configs, anything outside scope]
 
 ## Constraints
-- [Stack version, naming conventions, no new dependencies without asking]
-- Only make changes directly requested. Do not add features, abstractions, or files beyond what was asked.
+- [Relevant stack, conventions, compatibility needs, or dependency boundaries]
+- Make only changes needed for the requested outcome.
 
 ## Acceptance Criteria
 - [ ] [Binary check 1]
 - [ ] [Binary check 2]
 - [ ] [Binary check 3]
 
-## Action Boundaries
-- Proceed with reversible, in-scope inspection, edits, and validation.
-- Stop and ask before destructive or irreversible actions, external writes, purchases, material scope expansion, or decisions that require user-only input.
+## Approval Boundaries
+- Proceed with the in-scope work described above.
+- Stop before [specific consequential action, external write, destructive change, or unresolved user decision].
 
-## Progress Evidence
-For long-running work, report progress only when it changes or when a checkpoint is reached. Ground every completion claim in a tool result, changed artifact, or verification output.
+## Verification and Handoff
+Run [relevant checks]. Report changed files, results, and anything not verified. Do not claim a check passed unless it was run.
 ```
 
-**Effort** — configure in the API or harness rather than requesting private reasoning in the prompt. Start with the model default, lower it for routine scoped work, and raise it only when task difficulty warrants the cost.
-
-**Claude Code only — add Session Strategy block when relevant:**
+**Optional session context** — include this only if the target supports it and the user has supplied relevant prior-session decisions:
 ```
 ## Session Strategy
 [Pick one:]
 - New session — unrelated to prior context, start fresh
 - Continue — prior context still needed
-- Subagent — delegate only [independent, sizeable workstream], with a bounded deliverable
+- Delegate — use only [independent, sizeable workstream], with a bounded deliverable
 - Compact first — compact around [decisions, constraints, and current state], then begin
 ```
 
-**When to use:** Current Claude models on any surface when the task is complex, multi-file, ambiguous, or agentic. Not needed for simple one-shot tasks.
+**When to use:** The task is complex, multi-file, ambiguous, or agentic. Not needed for simple one-shot tasks.

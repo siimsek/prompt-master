@@ -1,4 +1,4 @@
-# Credit-Killing Patterns Reference
+# Prompt Failure Patterns Reference
 
 37 patterns that waste tokens and cause re-prompts. Read this file when the user pastes a bad prompt and asks you to fix it, or when diagnosing why a prompt is underperforming.
 
@@ -22,9 +22,9 @@
 
 | # | Pattern | Bad Example | Fixed |
 |---|---------|------------|-------|
-| 8 | **Assumed prior knowledge** | "continue where we left off" | Include Memory Block with all prior decisions |
+| 8 | **Assumed prior knowledge** | "continue where we left off" | Restate the relevant decisions and current state |
 | 9 | **No project context** | "write a cover letter" | "PM role at B2B fintech, 2yr SWE experience transitioning to product, shipped 3 features as tech lead" |
-| 10 | **Forgotten stack** | New prompt contradicts prior tech choice | Always include Memory Block with established stack |
+| 10 | **Forgotten stack** | New prompt contradicts prior tech choice | Carry forward the established stack choice |
 | 11 | **Hallucination invite** | "what do experts say about X?" | "Cite only sources you are certain of. If uncertain, say so explicitly rather than guessing." |
 | 12 | **Undefined audience** | "write something for users" | "Non-technical B2B buyers, no coding knowledge, decision-maker level" |
 | 13 | **No mention of prior failures** | (blank) | "I already tried X and it didn't work because Y. Do not suggest X." |
@@ -40,7 +40,7 @@
 | 16 | **No role assignment** | (blank) | "You are a senior backend engineer specializing in Node.js and PostgreSQL" |
 | 17 | **Vague aesthetic adjectives** | "make it look professional" | "Monochrome palette, 16px base font, 24px line height, no decorative elements" |
 | 18 | **No negative prompts for image AI** | "a portrait of a woman" | Add: "no watermark, no blur, no extra fingers, no distortion, no text overlay" |
-| 19 | **Prose prompt for Midjourney** | Full descriptive sentence | "subject, style, mood, lighting, composition, --ar 16:9 --v 6" |
+| 19 | **Unadapted prompt syntax** | Tool-specific flags copied to a different generator | Keep the visual intent and verify the target's current syntax before adding flags |
 
 ---
 
@@ -63,8 +63,8 @@
 |---|---------|------------|-------|
 | 26 | **No audit contract for logic task** | "which approach is better?" | Request the recommendation, assumptions, decision criteria, evidence, and verification checks |
 | 27 | **Requesting hidden reasoning** | "show your chain of thought" | Remove it—ask for a concise rationale, evidence, and checks instead |
-| 28 | **Expecting inter-session memory** | "you already know my project" | Always re-provide the Memory Block in every new session |
-| 29 | **Contradicting prior work** | New prompt ignores earlier architecture | Include Memory Block with all established decisions |
+| 28 | **Expecting inter-session memory** | "you already know my project" | Include the relevant project details in the new session |
+| 29 | **Contradicting prior work** | New prompt ignores earlier architecture | Include the established decisions that affect this task |
 | 30 | **No grounding rule for factual tasks** | "summarize what experts say about X" | "Use only information you are highly confident is accurate. Say [uncertain] if not." |
 
 ---
